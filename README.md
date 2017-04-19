@@ -1,4 +1,5 @@
 ```
+brew install python3 swig portaudio sox
 python3.6 -m venv hey-office-venv
 source hey-office-venv/bin/activate
 pip install -r requirements.txt
