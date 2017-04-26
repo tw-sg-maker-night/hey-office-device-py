@@ -8,3 +8,4 @@ python-dateutil==2.6.0
 python-dotenv==0.6.4
 s3transfer==0.1.10
 six==1.10.0
+webrtcvad==2.0.10
