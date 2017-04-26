@@ -39,13 +39,6 @@ def record_audio():
 
     audio = b''.join(frames)
 
-    # wf = wave.open("sound.wav", 'wb')
-    # wf.setnchannels(CHANNELS)
-    # wf.setsampwidth(p.get_sample_size(FORMAT))
-    # wf.setframerate(RATE)
-    # wf.writeframes(audio)
-    # wf.close()
-
     return audio
 
 sound = record_audio()
