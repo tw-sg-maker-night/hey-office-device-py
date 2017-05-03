@@ -35,17 +35,19 @@ def record_audio():
 
     keep_going = True
     not_talk_count = 0
+    total_count = 0
 
-    while keep_going:
+    while total_count < 500:
         data = stream.read(CHUNK)
         frames.append(data)
+        total_count = total_count + 1
         if vad.is_speech(data, RATE):
             not_talk_count = 0
         else:
             not_talk_count = not_talk_count + 1
         print(not_talk_count)
-        if not_talk_count > 25:
-            keep_going = False
+        if not_talk_count >= 50:
+            break
 
     print("* done")
 
