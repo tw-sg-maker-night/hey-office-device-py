@@ -56,8 +56,7 @@ def record_audio():
 
     return audio
 
-def ask_lex(detector):
-    detector.terminate()
+def ask_lex():
     sound = record_audio()
 
     client = boto3.client('lex-runtime',
@@ -68,32 +67,27 @@ def ask_lex(detector):
         botName='HeyOffice',
         botAlias='$LATEST',
         userId='office',
-        sessionAttributes={
-            'someKey': 'STRING_VALUE',
-            'anotherKey': 'ANOTHER_VALUE'
-        },
         contentType='audio/l16; rate=16000; channels=1',
         accept='audio/pcm',
         inputStream=sound
     )
 
     print(response['message'])
+    print(response['dialogState'])
 
 
     stream = p.open(format=p.get_format_from_width(width=2), channels=1, rate=16000, output=True)
     stream.write(response['audioStream'].read())
     stream.stop_stream()
     stream.close()
-    start_snowboy()
+
+    if response['dialogState'] not in ['Fulfilled', 'Failed']:
+        ask_lex()
 
 def signal_handler(signal, frame):
     global interrupted
     interrupted = True
 
-
-def interrupt_callback():
-    global interrupted
-    return interrupted
 
 if len(sys.argv) == 1:
     print("Error: need to specify model name")
@@ -106,16 +100,28 @@ model = sys.argv[1]
 # capture SIGINT signal, e.g., Ctrl+C
 signal.signal(signal.SIGINT, signal_handler)
 
+def callback():
+    global stop
+    stop = True
 
 def start_snowboy():
+    global interrupted
+    global stop
+
     detector = snowboydecoder.HotwordDetector(model, sensitivity=0.5)
     print('Listening... Press Ctrl+C to exit')
 
-    callback = lambda : ask_lex(detector)
+    stop = False
+
+    should_stop = lambda : stop or interrupted
 
     # main loop
     detector.start(detected_callback=callback,
-                   interrupt_check=interrupt_callback,
+                   interrupt_check=should_stop,
                    sleep_time=0.03)
+    detector.terminate()
 
-start_snowboy()
+while not interrupted:
+    start_snowboy()
+    if not interrupted:
+        ask_lex()
