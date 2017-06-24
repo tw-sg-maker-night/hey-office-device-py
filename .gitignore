@@ -4,3 +4,4 @@ hey-office-venv
 *.pyc
 .idea
 *.iml
+.cache
