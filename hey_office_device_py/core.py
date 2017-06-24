@@ -7,4 +7,6 @@ class HeyOffice(object):
             raise InputError('The given states map is empty!')
         self.states = states
         self.current_state = None
+        self.current_context = None
         self.next_state = None
+        self.next_context = None

@@ -21,5 +21,11 @@ class TestHeyOffice(object):
     def test_default_current_state_is_none(self, mock_states):
         assert HeyOffice(mock_states).current_state is None
 
+    def test_default_current_context_is_none(self, mock_states):
+        assert HeyOffice(mock_states).current_context is None
+
     def test_default_next_state_is_none(self, mock_states):
         assert HeyOffice(mock_states).next_state is None
+
+    def test_default_next_context_is_none(self, mock_states):
+        assert HeyOffice(mock_states).next_context is None
