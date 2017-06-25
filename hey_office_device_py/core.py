@@ -10,3 +10,12 @@ class HeyOffice(object):
         self.current_context = None
         self.next_state = None
         self.next_context = None
+
+    def set_next_state(self, state_name, context):
+        self.next_state = self.states[state_name]
+        self.next_context = context
+
+    def transit_state(self):
+        self.current_state.deactivate()
+        self.next_context['__FSM__'] = self
+        self.next_state.activate(self.next_context)
