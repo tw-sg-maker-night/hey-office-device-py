@@ -1,3 +1,5 @@
+import signal
+
 from hey_office_device_py.exceptions import InputError
 
 
@@ -7,15 +9,23 @@ class HeyOffice(object):
             raise InputError('The given states map is empty!')
         self.states = states
         self.current_state = None
-        self.current_context = None
-        self.next_state = None
-        self.next_context = None
+        self.transition_context = None
+        self.should_continue = True
 
-    def set_next_state(self, state_name, context):
-        self.next_state = self.states[state_name]
-        self.next_context = context
+    def get_state(self, state_name):
+        return self.states[state_name]
 
     def transit_state(self):
-        self.current_state.deactivate()
-        self.next_context['__FSM__'] = self
-        self.next_state.activate(self.next_context)
+        self.current_state = self.get_state(self.transition_context.to_state)
+        self.current_state.activate(self, self.transition_context)
+
+    def signal_handler(self, signal, frame):
+        print('Request to stop!')
+        self.should_continue = False
+
+    def start(self, initial_context):
+        signal.signal(signal.SIGINT, self.signal_handler)
+
+        self.transition_context = initial_context
+        while self.should_continue:
+            self.transit_state()
