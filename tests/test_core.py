@@ -39,3 +39,13 @@ class TestHeyOffice(object):
 
         assert hey_office.current_state == hey_office.get_state('S2')
         hey_office.current_state.activate.assert_called_once_with(hey_office, mock_context)
+
+    def test_start(self, hey_office):
+        hey_office.allowed_to_continue = Mock(side_effect=[True, False])
+        hey_office.transit_state = Mock()
+        initial_context = Mock()
+
+        hey_office.start(initial_context)
+
+        assert hey_office.transition_context == initial_context
+        hey_office.transit_state.assert_called_once()
