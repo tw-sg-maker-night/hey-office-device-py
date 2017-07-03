@@ -1,11 +1,24 @@
-```
-brew install python3 swig portaudio sox
-python3.6 -m venv hey-office-venv
-source hey-office-venv/bin/activate
-pip install -r requirements.txt
-```
+# Hey Office Device - Python
+
+## Prepare workspace
+
+    brew install python3 swig portaudio sox
+    python3.6 -m venv hey-office-venv
+    source hey-office-venv/bin/activate
+    pip install -r requirements.txt
+
+Create AWS credential file named '.env' and put it in the "resources" folder.
+
+## Test
+
+    ./test.sh
+    
+## Run
+
+    ./run.sh
 
 
+---
 
 # Snowboy Hotword Detection
 
