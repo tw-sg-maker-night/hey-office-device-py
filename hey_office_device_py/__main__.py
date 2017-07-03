@@ -1,4 +1,6 @@
-from hey_office_device_py.core import HeyOffice, Ping, Pong, TransitionContext
+import sys
 
-hey_office = HeyOffice({'PING': Ping(), 'PONG': Pong()})
-hey_office.start(TransitionContext('PING', 'data'))
+from hey_office_device_py.core import HeyOffice, TransitionContext, Idle
+
+hey_office = HeyOffice({'Idle': Idle(sys.argv[1])})
+hey_office.start(TransitionContext('Idle', 'data'))

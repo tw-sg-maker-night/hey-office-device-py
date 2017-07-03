@@ -44,7 +44,7 @@ class TestHeyOffice(object):
         assert hey_office.transition_context.to_state == 'S3'
 
     def test_start(self, hey_office):
-        hey_office.allowed_to_continue = Mock(side_effect=[True, False])
+        hey_office.is_interrupted = Mock(side_effect=[False, True])
         hey_office.transit_state = Mock()
         initial_context = Mock()
 
