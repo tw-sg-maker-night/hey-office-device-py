@@ -11,7 +11,7 @@ from hey_office_device_py import snowboydecoder
 
 interrupted = False
 
-dotenv_path = join(dirname(__file__), '.env')
+dotenv_path = join(dirname(__file__), 'resources/.env')
 load_dotenv(dotenv_path)
 
 p = pyaudio.PyAudio()
