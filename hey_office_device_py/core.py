@@ -1,7 +1,5 @@
 import signal
-import time
 
-import snowboydecoder
 from hey_office_device_py.exceptions import InputError
 
 
@@ -37,48 +35,3 @@ class HeyOffice(object):
             self.transit_state()
 
         print('Goodbye!')
-
-class TransitionContext(object):
-    def __init__(self, to_state, data):
-        self.to_state = to_state
-        self.is_interrupted = None
-        self.data = data
-
-
-class Ping(object):
-    def activate(self, context):
-        print('In Ping State ...')
-        time.sleep(1)
-        return TransitionContext('PONG', 'data')
-
-
-class Pong(object):
-    def activate(self, context):
-        print('In Pong State ...')
-        time.sleep(1)
-        return TransitionContext('PING', 'data')
-
-
-class Idle(object):
-    def __init__(self, model):
-        self.model = model
-        self.sensitivity = 0.5
-        self.sleep_time = 0.03
-        self.stop = False
-
-    def activate(self, context):
-        self.stop = False
-        detector = snowboydecoder.HotwordDetector(self.model, sensitivity=self.sensitivity)
-        print('Say "Hey Office" to wake me up...')
-
-        detector.start(detected_callback=self.__on_keyword_detected,
-                       interrupt_check=self.__get_interrupt_check(context.is_interrupted),
-                       sleep_time=self.sleep_time)
-        detector.terminate()
-        return TransitionContext('Idle', 'data')
-
-    def __on_keyword_detected(self):
-        self.stop = True
-
-    def __get_interrupt_check(self, is_interrupted):
-        return lambda: self.stop or is_interrupted()

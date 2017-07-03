@@ -1,6 +1,10 @@
 import sys
 
-from hey_office_device_py.core import HeyOffice, TransitionContext, Idle
+from hey_office_device_py.core import HeyOffice
+from hey_office_device_py.states import TransitionContext, Idle, Listening
 
-hey_office = HeyOffice({'Idle': Idle(sys.argv[1])})
-hey_office.start(TransitionContext('Idle', 'data'))
+hey_office = HeyOffice({
+    'Idle': Idle(sys.argv[1]),
+    'Listening': Listening()
+})
+hey_office.start(TransitionContext('Idle', {}))
