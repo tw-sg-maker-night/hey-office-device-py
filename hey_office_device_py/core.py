@@ -19,7 +19,7 @@ class HeyOffice(object):
 
     def transit_state(self):
         self.current_state = self.get_state(self.transition_context.to_state)
-        self.current_state.activate(self, self.transition_context)
+        self.transition_context = self.current_state.activate(self.transition_context)
 
     def signal_handler(self, signal, frame):
         print('Request to stop!')
@@ -43,14 +43,14 @@ class TransitionContext(object):
 
 
 class Ping(object):
-    def activate(self, fsm, context):
+    def activate(self, context):
         print('In Ping State ...')
         time.sleep(1)
-        fsm.transition_context = TransitionContext('PONG', 'data')
+        return TransitionContext('PONG', 'data')
 
 
 class Pong(object):
-    def activate(self, fsm, context):
+    def activate(self, context):
         print('In Pong State ...')
         time.sleep(1)
-        fsm.transition_context = TransitionContext('PING', 'data')
+        return TransitionContext('PING', 'data')

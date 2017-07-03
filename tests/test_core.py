@@ -34,11 +34,14 @@ class TestHeyOffice(object):
     def test_transit_state(self, hey_office):
         mock_context = Mock(to_state='S2', data={})
         hey_office.transition_context = mock_context
+        mock_state = hey_office.get_state('S2')
+        mock_state.activate = Mock(return_value=Mock(to_state='S3', data={}))
 
         hey_office.transit_state()
 
-        assert hey_office.current_state == hey_office.get_state('S2')
-        hey_office.current_state.activate.assert_called_once_with(hey_office, mock_context)
+        assert hey_office.current_state == mock_state
+        hey_office.current_state.activate.assert_called_once_with(mock_context)
+        assert hey_office.transition_context.to_state == 'S3'
 
     def test_start(self, hey_office):
         hey_office.allowed_to_continue = Mock(side_effect=[True, False])
@@ -49,3 +52,4 @@ class TestHeyOffice(object):
 
         assert hey_office.transition_context == initial_context
         hey_office.transit_state.assert_called_once()
+
