@@ -1,6 +1,7 @@
-import snowboydecoder
+from hey_office_device_py import snowboydecoder
 from hey_office_device_py.audio import AudioRecorder
 from hey_office_device_py.service import Lex
+from hey_office_device_py.util import get_resource
 
 
 class TransitionContext(object):
@@ -12,7 +13,7 @@ class TransitionContext(object):
 
 class Idle(object):
     def __init__(self, model):
-        self.model = model
+        self.model = get_resource(model)
         self.sensitivity = 0.5
         self.sleep_time = 0.03
         self.stop = False
@@ -38,12 +39,12 @@ class Idle(object):
 class Listening(object):
     def __init__(self):
         self.recorder = AudioRecorder()
-        self.lex = Lex('../.env')
+        self.lex = Lex(get_resource('.env'))
 
     def activate(self, context):
-        self.recorder.play_wave('../resources/ding.wav')
+        self.recorder.play_wave(get_resource('ding.wav'))
         audio_data = self.recorder.record(context.is_interrupted)
-        self.recorder.play_wave('../resources/dong.wav')
+        self.recorder.play_wave(get_resource('dong.wav'))
         if not context.is_interrupted():
             response = self.lex.ask(audio_data)
             self.__display_response(response)

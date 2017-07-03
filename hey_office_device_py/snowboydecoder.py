@@ -1,21 +1,23 @@
 #!/usr/bin/env python
 
 import collections
-import pyaudio
-import snowboydetect
+import logging
 import time
 import wave
+
 import os
-import logging
+import pyaudio
+
+from hey_office_device_py import snowboydetect
 
 logging.basicConfig()
 logger = logging.getLogger("snowboy")
 logger.setLevel(logging.INFO)
 TOP_DIR = os.path.dirname(os.path.abspath(__file__))
 
-RESOURCE_FILE = os.path.join(TOP_DIR, "resources/common.res")
-DETECT_DING = os.path.join(TOP_DIR, "resources/ding.wav")
-DETECT_DONG = os.path.join(TOP_DIR, "resources/dong.wav")
+RESOURCE_FILE = os.path.join(TOP_DIR, "../resources/common.res")
+DETECT_DING = os.path.join(TOP_DIR, "../resources/ding.wav")
+DETECT_DONG = os.path.join(TOP_DIR, "../resources/dong.wav")
 
 
 class RingBuffer(object):

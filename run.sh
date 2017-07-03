@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python -m hey_office_device_py resources/HeyOffice.pmdl
+python -m hey_office_device_py HeyOffice.pmdl

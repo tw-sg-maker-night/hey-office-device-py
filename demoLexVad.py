@@ -1,12 +1,13 @@
-import snowboydecoder
-import sys
 import signal
+import sys
+from os.path import join, dirname
+
 import boto3
 import pyaudio
-import wave
-from os.path import join, dirname
-from dotenv import load_dotenv
 import webrtcvad
+from dotenv import load_dotenv
+
+from hey_office_device_py import snowboydecoder
 
 interrupted = False
 
