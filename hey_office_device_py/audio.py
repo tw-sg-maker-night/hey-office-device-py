@@ -1,3 +1,5 @@
+import wave
+
 import pyaudio
 import webrtcvad
 
@@ -40,9 +42,7 @@ class AudioRecorder(object):
         stream.stop_stream()
         stream.close()
 
-        audio = b''.join(frames)
-
-        return audio
+        return b''.join(frames)
 
     def __is_speech(self, audio_data):
         return self.vad.is_speech(audio_data, self.rate)
@@ -53,5 +53,19 @@ class AudioRecorder(object):
                                    rate=self.rate,
                                    output=True)
         stream.write(audio_stream.read())
+        stream.stop_stream()
+        stream.close()
+
+    def play_wave(self, file):
+        wf = wave.open(file, 'rb')
+        stream = self.pyaudio.open(format=self.pyaudio.get_format_from_width(wf.getsampwidth()),
+                                   channels=wf.getnchannels(),
+                                   rate=wf.getframerate(),
+                                   output=True)
+        data = wf.readframes(1024)
+        while len(data) > 0:
+            stream.write(data)
+            data = wf.readframes(1024)
+
         stream.stop_stream()
         stream.close()

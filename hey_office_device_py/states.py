@@ -41,7 +41,9 @@ class Listening(object):
         self.lex = Lex('../.env')
 
     def activate(self, context):
+        self.recorder.play_wave('../resources/ding.wav')
         audio_data = self.recorder.record(context.is_interrupted)
+        self.recorder.play_wave('../resources/dong.wav')
         if not context.is_interrupted():
             response = self.lex.ask(audio_data)
             self.__display_response(response)
