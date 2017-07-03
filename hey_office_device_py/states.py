@@ -1,7 +1,7 @@
-from hey_office_device_py import snowboydecoder
 from hey_office_device_py.audio import AudioRecorder
 from hey_office_device_py.service import Lex
 from hey_office_device_py.util import get_resource
+from snowboy import snowboydecoder
 
 
 class TransitionContext(object):

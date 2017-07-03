@@ -8,7 +8,7 @@ import wave
 import os
 import pyaudio
 
-from hey_office_device_py import snowboydetect
+from snowboy import snowboydetect
 
 logging.basicConfig()
 logger = logging.getLogger("snowboy")
