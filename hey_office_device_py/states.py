@@ -39,17 +39,30 @@ class Idle(object):
 class Listening(object):
     def __init__(self):
         self.recorder = AudioRecorder()
-        self.lex = Lex(get_resource('.env'))
 
     def activate(self, context):
         self.recorder.play_wave(get_resource('ding.wav'))
         audio_data = self.recorder.record(context.is_interrupted)
-        self.recorder.play_wave(get_resource('dong.wav'))
         if not context.is_interrupted():
-            response = self.lex.ask(audio_data)
-            self.__display_response(response)
-            self.recorder.play_stream(response['audioStream'])
-            return self.__get_transition_context(response['dialogState'] in ['Fulfilled', 'Failed'])
+            if audio_data['is_silent']:
+                self.recorder.play_wave(get_resource('dong.wav'))
+                self.recorder.play_wave(get_resource('dong.wav'))
+                return TransitionContext('Idle', {})
+            else:
+                self.recorder.play_wave(get_resource('dong.wav'))
+                return TransitionContext('Processing', {'audio': audio_data['data']})
+
+
+class Processing(object):
+    def __init__(self):
+        self.lex = Lex(get_resource('.env'))
+        self.recorder = AudioRecorder()
+
+    def activate(self, context):
+        response = self.lex.ask(context.data['audio'])
+        self.__display_response(response)
+        self.recorder.play_stream(response['audioStream'])
+        return self.__get_transition_context(response['dialogState'] in ['Fulfilled', 'Failed'])
 
     @staticmethod
     def __get_transition_context(dialogEnded):

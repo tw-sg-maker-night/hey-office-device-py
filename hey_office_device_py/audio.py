@@ -12,7 +12,7 @@ class AudioRecorder(object):
         self.rate = 16000
         self.chunk = 160
         self.max_frame_count = 500
-        self.vad = webrtcvad.Vad()
+        self.vad = webrtcvad.Vad(3)
 
     def record(self, is_interrupted):
         stream = self.pyaudio.open(format=self.format,
@@ -26,15 +26,15 @@ class AudioRecorder(object):
 
         while len(frames) < self.max_frame_count and not is_interrupted():
             data = stream.read(self.chunk)
+            frames.append(data)
 
             if self.__is_speech(data):
-                frames.append(data)
                 silence_count = 0
             else:
                 silence_count += 1
 
             print(silence_count)
-            if silence_count >= 50:
+            if silence_count >= 75:
                 break
 
         print("* done")
@@ -42,7 +42,7 @@ class AudioRecorder(object):
         stream.stop_stream()
         stream.close()
 
-        return b''.join(frames)
+        return {'data': b''.join(frames), 'is_silent': len(frames) < 100}
 
     def __is_speech(self, audio_data):
         return self.vad.is_speech(audio_data, self.rate)
