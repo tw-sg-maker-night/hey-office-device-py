@@ -1,5 +1,6 @@
 import signal
 import sys
+import io
 from os.path import join, dirname
 
 import boto3
@@ -32,7 +33,7 @@ def record_audio():
 
     print("* Recording audio...")
 
-    frames = []
+    sound = io.BytesIO()
 
     keep_going = True
     not_talk_count = 0
@@ -40,7 +41,7 @@ def record_audio():
 
     while total_count < 500:
         data = stream.read(CHUNK)
-        frames.append(data)
+        sound.write(data)
         total_count = total_count + 1
         if vad.is_speech(data, RATE):
             not_talk_count = 0
@@ -55,9 +56,9 @@ def record_audio():
     stream.stop_stream()
     stream.close()
 
-    audio = b''.join(frames)
+    sound.seek(0)
 
-    return audio
+    return sound
 
 def ask_lex():
     sound = record_audio()
