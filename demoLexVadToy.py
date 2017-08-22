@@ -1,8 +1,3 @@
-try:
-    import threading
-except ImportError:
-    import dummy_threading as threading
-
 import signal
 import sys
 import io
@@ -22,8 +17,7 @@ load_dotenv(dotenv_path)
 
 p = pyaudio.PyAudio()
 
-
-class DuplexBytesIO(io.IOBase):
+class ToyBytesIO(object):
     """ A file-like API for reading and writing bytes objects.
 
     Mostly like StringIO, but write() calls modify the underlying
@@ -37,128 +31,99 @@ class DuplexBytesIO(io.IOBase):
     bytes([202, 254, 186, 190, 87, 65, 86, 69])
     """
 
-    def __init__(self, buf):
+    def __init__(self):
         """ Create a new BytesIO for reading or writing the given buffer.
 
         buf - Back-end buffer for this BytesIO.  A bytes object.
             Actually, anything that supports len(), slice-assignment,
             and += will work.
-
-        mode - no need for mode, it's intended to be binary read/write by design
+        mode - One of 'r', 'w', 'a'.
+            An optional 'b' is also allowed, but it doesn't do anything.
         """
 
-        self._buf = bytearray(buf)
-        self.ended = False #Finished writing, now read-only
-        self._write_point = 0
-        self._read_point = len(buf)
-        self.lock = threading.Condition()
+        self._buf = bytearray()
+        self.closed = False
+        self._point = len(self._buf)
+        self.flip = True
 
     def close(self):
-        io.IOBase.close(self)
-        self.ended = True
-
-    def end(self):
-        self.ended = True
-        with self.lock:
-            self.lock.notify_all()
+        self.closed = True
 
     def _check_closed(self):
         if self.closed:
             raise ValueError("file is closed")
 
-    def _check_ended(self):
-        if self.ended:
-            raise ValueError("file cannot be written")
+    def flush(self):
+        self._check_closed()
 
-    def read(self, size):
-        print("###############")
+    def read(self, size=None):
+        print("#########")
         print(size)
         self._check_closed()
-        with self.lock:
-            e = min(self._read_point + size, len(self._buf))
-
-            while e >= self._read_point and not self.ended:
-                print("#####")
-                print("waiting")
-                self.lock.wait()
-                e = min(self._read_point + size, len(self._buf))
-
-            r = self._buf[self._read_point:e]
-            self._read_point = e
-            return r
-
-    def tell(self):
-        self._check_closed()
-        return self._read_point
+        if self.flip:
+            self.flip = False
+            return None
+        if size is None:
+            e = len(self._buf)
+        else:
+            e = min(self._point + size, len(self._buf))
+        r = self._buf[self._point:e]
+        self._point = e
+        return r
 
     def seek(self, offset, whence=0):
+        print("~~~~~~~~~~~")
+        print(offset)
+        print(whence)
         self._check_closed()
 
         if whence == 0:
-            self._read_point = offset
+            self._point = offset
         elif whence == 1:
-            self._read_point += offset
+            self._point += offset
         elif whence == 2:
-            self._read_point = len(self._buf) + offset
+            self._point = len(self._buf) + offset
         else:
             raise ValueError("whence must be 0, 1, or 2")
 
-        if self._read_point < 0:
-            self._read_point = 0
+        if self._point < 0:
+            self._point = 0  # XXX is this right?
+
+    def tell(self):
+        print("###TELL###")
+        self._check_closed()
+        return self._point
+
+    def truncate(self, size=None):
+        self._check_closed()
+        if size is None:
+            size = self.tell()
+        del self._buf[size:]
 
     def write(self, data):
-        self._check_ended()
+        self._check_closed()
         amt = len(data)
-        with self.lock:
-            size = len(self._buf)
+        size = len(self._buf)
+        self._point = size
 
-            if self._write_point > size:
-                if isinstance(b, bytes):
-                    blank = bytes([0])
-                else:
-                    # Don't know what default value to insert, unfortunately
-                    raise ValueError("can't write past the end of this object")
-                self._buf += blank * (self._write_point - size) + data
-                self._write_point = len(self._buf)
+        if self._point > size:
+            if isinstance(b, bytes):
+                blank = bytes([0])
             else:
-                p = self._write_point
-                self._buf[p:p + amt] = data
-                self._write_point = min(p + amt, len(self._buf))
+                # Don't know what default value to insert, unfortunately
+                raise ValueError("can't write past the end of this object")
+            self._buf += blank * (self._point - size) + data
+            self._point = len(self._buf)
+        else:
+            p = self._point
+            self._buf[p:p + amt] = data
+            self._point = min(p + amt, len(self._buf))
 
-            self.lock.notify_all()
+    @property
+    def name(self):
+        return repr(self)
 
-        def __iter__(self):
-            return self
-
-
-class lexThread (threading.Thread):
-    def __init__(self, sound):
-        threading.Thread.__init__(self)
-        self._sound = sound
-        self.response = None
-
-    def run(self):
-        client = boto3.client('lex-runtime',
-            region_name='us-east-1'
-        )
-
-        self.response = client.post_content(
-            botName='HeyOffice',
-            botAlias='$LATEST',
-            userId='office',
-            contentType='audio/l16; rate=16000; channels=1',
-            accept='audio/pcm',
-            inputStream=self._sound
-        )
-
-        print("Finished calling lex")
-
-def ask_lex():
-    sound = DuplexBytesIO(b'')
-
-    lex = lexThread(sound)
-    lex.start()
-
+def record_audio():
     FORMAT = p.get_format_from_width(width=2)
     CHANNELS = 1
     RATE = 16000
@@ -173,6 +138,8 @@ def ask_lex():
                 frames_per_buffer=CHUNK)
 
     print("* Recording audio...")
+
+    sound = ToyBytesIO()
 
     keep_going = True
     not_talk_count = 0
@@ -192,12 +159,28 @@ def ask_lex():
 
     print("* done")
 
+    stream.stop_stream()
     stream.close()
-    sound.end()
 
-    lex.join()
+    sound.seek(0)
 
-    response = lex.response
+    return sound
+
+def ask_lex():
+    sound = record_audio()
+
+    client = boto3.client('lex-runtime',
+        region_name='us-east-1'
+    )
+
+    response = client.post_content(
+        botName='HeyOffice',
+        botAlias='$LATEST',
+        userId='office',
+        contentType='audio/l16; rate=16000; channels=1',
+        accept='audio/pcm',
+        inputStream=sound
+    )
 
     print(response['message'])
     print(response['dialogState'])
